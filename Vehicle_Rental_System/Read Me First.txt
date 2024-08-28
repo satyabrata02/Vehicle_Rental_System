@@ -1,0 +1,8 @@
+---> D:\Django_Projects>django-admin startproject Vehicle_Rental_System
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py startapp rentapp
+
+---> Create a Database "vehicle_rental_system" in MySQL workbench.
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py makemigrations
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py migrate
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py createsuperuser
+---> 
