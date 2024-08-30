@@ -1,0 +1,81 @@
+---> D:\Django_Projects>django-admin startproject Vehicle_Rental_System
+
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py startapp rentapp
+
+---> Create a Database "vehicle_rental_system" in MySQL workbench.
+
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py makemigrations
+
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py migrate
+
+---> D:\Django_Projects\Vehicle_Rental_System>py manage.py createsuperuser
+
+---> Create folders 'templates' and 'static' inside project folder i.e.(Vehicle_Rental_System)
+
+settings.py(in Chatting_System):
+-----------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATE_DIR = BASE_DIR/'templates'
+STATIC_DIR = BASE_DIR/'static'
+
+# Save Image in this directory
+MEDIA_ROOT = os.path.join(STATIC_DIR, 'profile_picture')
+MEDIA_ROOT_2 = os.path.join(STATIC_DIR, 'vehicle_images')
+
+                -------------------------------------------------------
+
+INSTALLED_APPS = [
+    ...................,
+    ...................,
+    'rentapp',
+]
+
+                ---------------------------------------------------------
+
+TEMPLATES = [
+    {
+        'DIRS': [TEMPLATE_DIR],
+    },
+]
+
+                ---------------------------------------------------------
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'vehicle_rental_system',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': 3306,
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
+    }
+}
+
+                -----------------------------------------------------------
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [STATIC_DIR]
+
+models.py:
+---------------
+---> Create required tables.
+
+admin.py:
+-----------
+---> Register models in admin panel.
+
+D:\Django_Projects\Vehicle_Rental_System>py manage.py makemigrations
+D:\Django_Projects\Vehicle_Rental_System>py manage.py migrate
+D:\Django_Projects\Vehicle_Rental_System>py manage.py createsuperuser
+D:\Django_Projects\Vehicle_Rental_System>py manage.py runserver
+
+---> Create css, js, image, profile_picture folders inside 'static' folder.
+
+---> Create html files inside 'templates' folder.
+
+views.py:
+-----------
+---> Write codes(method)
