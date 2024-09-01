@@ -120,7 +120,6 @@ def customer_login(request):
             if user_data and user_data.password == password:
                 user_data.status = 'Active now'
                 user_data.save()
-                request.session['uphoneno'] = uphoneno
                 request.session['user_id'] = user_data.user_id
                 request.session['login_type'] = "customer"
                 messages.success(request, 'Login successfully as customer')
@@ -143,7 +142,6 @@ def dealer_login(request):
             if user_data and user_data.password == password:
                 user_data.status = 'Active now'
                 user_data.save()
-                request.session['uphoneno'] = uphoneno
                 request.session['user_id'] = user_data.user_id
                 request.session['login_type'] = "dealer"
                 messages.success(request, 'Login successfully as dealer')
@@ -162,17 +160,18 @@ def signout(request):
 def customer_home(request):
     clear_messages(request)
     
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="customer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/customer_login')
     
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
 
-    all_vehicles = Vehicles.objects.filter(is_available=True).exclude(dealer_id=user.user_id)
+    all_vehicles = Vehicles.objects.filter(is_available=True).exclude(dealer_id=user_id)
     vehicles = []
     for vehicle in all_vehicles:
         dealer = Users.objects.get(user_id=vehicle.dealer_id)
@@ -182,32 +181,33 @@ def customer_home(request):
 def dealer_home(request):
     clear_messages(request)
     
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="dealer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/dealer_login')
     
-    user = Users.objects.get(phoneno=uphoneno)
-    vehicles = Vehicles.objects.filter(dealer_id=user.user_id)
-    
+    user = Users.objects.get(user_id=user_id)
+    vehicles = Vehicles.objects.filter(dealer_id=user_id)
     return render(request, 'dealer_home.html', {'vehicles':vehicles, 'user':user})
 
 def add_vehicle(request):
     clear_messages(request)
     
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="dealer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/dealer_login')
     
     logo_name = "logo.png"
-    vehicle_dealer = Users.objects.get(phoneno=uphoneno)
+    vehicle_dealer = Users.objects.get(user_id=user_id)
     if request.method == "POST":
         if 'name' in request.FILES:
             try:
@@ -245,16 +245,17 @@ def add_vehicle(request):
 def vehicle_rent(request):
     clear_messages(request)
     
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="customer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/customer_login')
     
     id = request.POST['id']
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
     vehicle = Vehicles.objects.get(vehicle_id=id)
     dealer = Users.objects.get(user_id=vehicle.dealer_id)
     return render(request, 'customer_confirm_order.html', {'vehicle':vehicle, 'user':user, 'dealer':dealer})
@@ -262,18 +263,19 @@ def vehicle_rent(request):
 def order_details(request):
     clear_messages(request)
 
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="customer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/customer_login')
     
     vehicle_id = request.POST['id']
     days = request.POST['days']
     vehicle = Vehicles.objects.get(vehicle_id=vehicle_id)
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
     total_rent = (int(vehicle.rent))*(int(days))
     order_date = datetime.datetime.now().strftime('%d-%m-%Y %I:%M:%S %p')
 
@@ -295,22 +297,48 @@ def order_details(request):
         capacity = vehicle.capacity
     )
     order.save()
-
     messages.success(request, 'Successfully placed order')
-    return redirect('/customer_orders')
+    return redirect('/request_vehicle')
+
+def request_vehicle(request):
+    clear_messages(request)
+
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
+
+    # Check if the user is logged in
+    if not (user_id and login_type=="customer"):
+        logout(request)
+        messages.error(request, 'Please login first')
+        return redirect('/customer_login')
+
+    user = Users.objects.get(user_id=user_id)
+    orders = Orders.objects.filter(
+        Q(customer_id=user_id) & (Q(status='pending') | Q(status='accepted'))
+    )
+    request_vehicles_info = []
+
+    for order in orders:
+        dealer = Users.objects.get(user_id=order.dealer_id)
+        request_vehicles_info.append({
+            'order': order,
+            'dealer': dealer
+        })
+    return render(request, 'vehicle_rent_request.html', {'user':user, 'request_vehicles_info': request_vehicles_info, 'login_type':login_type})
 
 def customer_orders(request):
     clear_messages(request)
 
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="customer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/customer_login')
     
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
     all_orders = Orders.objects.filter(customer_id=user.user_id).order_by('-order_id')
     orders = []
     for order in all_orders:
@@ -326,17 +354,16 @@ def delete_order_history(request, ord_id):
 def edit_profile(request):
     clear_messages(request)
     
-    # Get the current user's phone number from the session
     user_id = request.session.get('user_id')
     login_type = request.session.get('login_type')
 
     # Check if the user is logged in
     if not user_id:
         messages.error(request, 'Please login first')
-        if login_type == "customer":
-            return redirect('/customer_login')
-        else:
+        if login_type == "dealer":
             return redirect('/dealer_login')
+        else:
+            return redirect('/customer_login')
     
     user = Users.objects.get(user_id=user_id)
     if request.method == 'POST':
@@ -376,15 +403,16 @@ def delete_vehicle(request, v_id):
 def edit_vehicle(request, v_id):
     clear_messages(request)
 
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
+    user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="dealer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/dealer_login')
     
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
     vehicle = Vehicles.objects.filter(vehicle_id=v_id)[0]
     if request.method == 'POST':
         vehicle_type = request.POST.get('vehicle_type')
@@ -414,16 +442,16 @@ def edit_vehicle(request, v_id):
 def dealer_orders(request):
     clear_messages(request)
 
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
     user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="dealer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/dealer_login')
     
-    user = Users.objects.get(phoneno=uphoneno)
+    user = Users.objects.get(user_id=user_id)
     all_orders = Orders.objects.filter(dealer_id=user.user_id).order_by('-order_id')
     orders = []
     for order in all_orders:
@@ -434,17 +462,19 @@ def dealer_orders(request):
 def rented_vehicle(request):
     clear_messages(request)
 
-    # Get the current user's phone number from the session
-    uphoneno = request.session.get('uphoneno')
+    login_type = request.session.get('login_type')
     user_id = request.session.get('user_id')
 
     # Check if the user is logged in
-    if not uphoneno:
+    if not (user_id and login_type=="dealer"):
+        logout(request)
         messages.error(request, 'Please login first')
         return redirect('/dealer_login')
 
-    user = Users.objects.get(phoneno=uphoneno)
-    orders = Orders.objects.filter(dealer_id=user_id, status='pending')
+    user = Users.objects.get(user_id=user_id)
+    orders = Orders.objects.filter(
+        Q(dealer_id=user_id) & (Q(status='pending') | Q(status='accepted'))
+    )
     rented_vehicles_info = []
 
     for order in orders:
@@ -468,7 +498,7 @@ def complete_rent_request(request):
         except:
             pass
 
-        order = Orders.objects.get(vehicle_id=v_id, status='pending')
+        order = Orders.objects.get(vehicle_id=v_id, status='accepted')
         order.status = "completed"
         order.save()
 
@@ -476,10 +506,11 @@ def complete_rent_request(request):
         dealer.earnings += int(order.total_rent)
         dealer.save()
         messages.success(request, 'Vehicle rent completed')
-        return redirect('/rented_vehicle')
+        return redirect('/request_vehicle')
 
 def cancel_rent_request(request):
     clear_messages(request)
+    login_type = request.session.get('login_type')
 
     if request.method == 'POST':
         v_id = request.POST.get('v_id')
@@ -495,5 +526,22 @@ def cancel_rent_request(request):
         order.status = "cancelled"
         order.save()
 
-        messages.success(request, 'Vehicle rent cancelled')
+        if login_type == "customer":
+            messages.success(request, 'Vehicle request cancelled')
+            return redirect('/request_vehicle')
+        else:
+            messages.success(request, 'Vehicle rent cancelled')
+            return redirect('/rented_vehicle')
+
+def accept_rent_request(request):
+    clear_messages(request)
+
+    if request.method == 'POST':
+        v_id = request.POST.get('v_id')
+
+        order = Orders.objects.get(vehicle_id=v_id, status='pending')
+        order.status = "accepted"
+        order.save()
+
+        messages.success(request, 'Vehicle rent accepted')
         return redirect('/rented_vehicle')

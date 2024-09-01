@@ -15,6 +15,7 @@ urlpatterns = [
     path("add_vehicle/", views.add_vehicle, name="add_vehicle"),
     path("vehicle_rent/", views.vehicle_rent, name="vehicle_rent"),
     path("order_details/", views.order_details, name="order_details"),
+    path("request_vehicle/", views.request_vehicle, name="request_vehicle"),
     path("customer_orders/", views.customer_orders, name="customer_orders"),
     path("delete_order/<int:ord_id>/", views.delete_order_history, name="delete_order"),
     path("user_profile/", views.edit_profile, name="user_profile"),
@@ -24,4 +25,5 @@ urlpatterns = [
     path("dealer_orders/", views.dealer_orders, name="dealer_orders"),
     path("complete_rent_request/", views.complete_rent_request, name="complete_rent_request"),
     path("cancel_rent_request/", views.cancel_rent_request, name="cancel_rent_request"),
+    path("accept_rent_request/", views.accept_rent_request, name="accept_rent_request"),
 ]
