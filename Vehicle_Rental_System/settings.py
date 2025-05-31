@@ -15,8 +15,8 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = BASE_DIR/'rentapp'/'templates'
-STATIC_DIR = BASE_DIR/'rentapp'/'static'
+TEMPLATE_DIR = BASE_DIR/'templates'
+STATIC_DIR = BASE_DIR/'static'
 
 # Save Image in this directory
 MEDIA_ROOT = os.path.join(STATIC_DIR, 'profile_picture')

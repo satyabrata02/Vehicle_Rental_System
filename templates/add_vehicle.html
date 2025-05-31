@@ -4,16 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Vehicle</title>
+    <title>Add Vehicle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
     <link rel="stylesheet" href="{% static 'css/add_vehicle.css' %}">
-    <style>
-        form .form-row .input-data select:valid{
-            border-bottom: 2px solid #3498db;
-        }
-    </style>
 </head>
 <body>
     <nav>
@@ -28,10 +23,9 @@
                 
                 <ul class="nav-links">
                     <li><a href="/dealer_home">Vehicles</a></li>
-                    <li><a href="/add_vehicle">Add Vehicle</a></li>
+                    <li><a href="/add_vehicle" class="active">Add Vehicle</a></li>
                     <li><a href="/rented_vehicle">Rents</a></li>
                     <li><a href="/dealer_orders">Orders</a></li>
-                    <li><a href="/2fa">2FA</a></li>
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -53,12 +47,17 @@
                 <div class="sub-menu">
                     <div class="user-info">
                         <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture">
-                        <h3>Hii, satyabrata</h3>
+                        <h3>Hii, {{user.firstname}}</h3>
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -80,39 +79,35 @@
     <!-- Main Content Start -->
     <div class="contactus">
         <div class="container">
-            <div class="text">Edit Vehicle</div><hr>
+            <div class="text">Add Vehicle</div><hr>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-row">
                     <div class="user-img">
                         <h3 class="vehicle-title">Upload Image</h3>
-                        <img src="{% static 'vehicle_images/' %}{{ vehicle.image }}" id="vehicle_photo" title="*Total Image size must lessthan 8mb">
-                        <div class="img_name">{{vehicle.image}}</div>
-                        <input type="file" id="file" name="name" accept="image/*">
+                        <img src="{% static 'vehicle_images/' %}{{logo_name}}" id="vehicle_photo" title="*Total Image size must lessthan 8mb">
+                        <div class="img_name"></div>
+                        <input type="file" id="file" class="img_file" name="name" accept="image/*" required>
                         <label for="file">Choose Image</label>
                     </div>
                     <div class="input-data">
-                        <select name="vehicle_type">
-                            <option disabled>Select vehicle type</option>
-                            <option value="Bike" {% if vehicle.vehicle_type == "Bike" %}selected{% endif %}>
-                                Bike (2 wheeler)
-                            </option>
-                            <option value="Car" {% if vehicle.vehicle_type == "Car" %}selected{% endif %}>
-                                Car (4 wheeler)
-                            </option>
+                        <select name="vehicle_type" required>
+                            <option value="" disabled selected>Select vehicle type</option>
+                            <option value="Bike">Bike (2 wheeler)</option>
+                            <option value="Car">Car (4 wheeler)</option>
                         </select>
                         <span id="error1" class="error"></span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="input-data">
-                        <input type="text" name="vehicle_name" id="vehicle_name" maxlength="25" value="{{vehicle.name}}" required>
+                        <input type="text" name="vehicle_name" id="vehicle_name" maxlength="25" required>
                         <div class="underline"></div>
                         <label for="">Vehicle Name</label>
                         <span id="error" class="error"></span>
                     </div>
                     <div class="input-data">
-                        <input type="text" name="capacity" id="capacity" onKeyPress="return numbersonly(event)" maxlength="2" minlength="1" value="{{vehicle.capacity}}" required>
+                        <input type="text" name="capacity" id="capacity" onKeyPress="return numbersonly(event)" maxlength="2" minlength="1" required>
                         <div class="underline"></div>
                         <label for="">Seat Capacity</label>
                         <span id="error2" class="error"></span>
@@ -120,13 +115,13 @@
                 </div>
                 <div class="form-row">
                     <div class="input-data">
-                        <input type="text" name="rent" id="rent" maxlength="4" value="{{vehicle.rent}}" onKeyPress="return numbersonly(event)" required>
+                        <input type="text" name="rent" id="rent" maxlength="4" onKeyPress="return numbersonly(event)" required>
                         <div class="underline"></div>
                         <label for="">Rent Per Day</label>
                         <span id="error3" class="error"></span>
                     </div>
                     <div class="input-data">
-                        <input type="text" name="city" id="city" maxlength="25" value="{{vehicle.location}}" required>
+                        <input type="text" name="city" id="city" maxlength="25" required>
                         <div class="underline"></div>
                         <label for="">City Name</label>
                         <span id="error4" class="error"></span>
@@ -135,10 +130,17 @@
                 <div class="form-row submit-btn">
                     <div class="input-data">
                         <div class="inner"></div>
-                        <input type="submit" value="Update" onclick="validation()">
+                        <input type="submit" value="Add" onclick="validation()">
                     </div>
                 </div>
             </form>
+            {% if messages %}
+                {% for message in messages %}
+                <script>
+                    alert('{{ message }}');
+                </script>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 

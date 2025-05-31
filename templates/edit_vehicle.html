@@ -4,43 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Authentication</title>
+    <title>Edit Vehicle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/home_login.css' %}">
+    <link rel="stylesheet" href="{% static 'css/add_vehicle.css' %}">
+    <style>
+        form .form-row .input-data select:valid{
+            border-bottom: 2px solid #3498db;
+        }
+    </style>
 </head>
 <body>
     <nav>
         <div class="nav-bar">
             <i class="fas fa-bars sidebarOpen"></i>
-            {% if login_type == "customer" %}
-            <span class="logo navLogo"><a href="/select_vehicle">My Vehicles</a></span>
-            {% else %}
             <span class="logo navLogo"><a href="/dealer_home">My Vehicles</a></span>
-            {% endif %}
             <div class="menu">
                 <div class="logo-toggle">
-                    {% if login_type == "customer" %}
-                    <span class="logo"><a href="/select_vehicle">My Vehicles</a></span>
-                    {% else %}
                     <span class="logo"><a href="/dealer_home">My Vehicles</a></span>
-                    {% endif %}
                     <i class="fas fa-xmark siderbarClose"></i>
                 </div>
                 
                 <ul class="nav-links">
-                    {% if login_type == "customer" %}
-                    <li><a href="/select_vehicle">Vehicle</a></li>
-                    <li><a href="/request_vehicle">Request</a></li>
-                    <li><a href="/customer_orders">Orders</a></li>
-                    {% else %}
                     <li><a href="/dealer_home">Vehicles</a></li>
                     <li><a href="/add_vehicle">Add Vehicle</a></li>
                     <li><a href="/rented_vehicle">Rents</a></li>
                     <li><a href="/dealer_orders">Orders</a></li>
-                    {% endif %}
-                    <li><a href="/2fa" class="active">2FA</a></li>
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -62,12 +52,17 @@
                 <div class="sub-menu">
                     <div class="user-info">
                         <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture">
-                        <h3>Hii, {{user.firstname}}</h3>
+                        <h3>Hii, satyabrata</h3>
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -87,53 +82,69 @@
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    <div class="about">            
+    <div class="contactus">
         <div class="container">
-            <header>Authenticator</header>
-            <form method="post">
+            <div class="text">Edit Vehicle</div><hr>
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                {% if has_auth %}
-                    <div class="contents details">
-                        <table>
-                            <tr>
-                                <th>TITLE</th>
-                                <th>DELETE</th>
-                            </tr>
-                            <tr>
-                                <td>Authenticator App</td>
-                                <td><a href="/delete-auth"><i class="fas fa-trash" style="color: #ff0000;"></i></a></td>
-                            </tr>
-                        </table>
+                <div class="form-row">
+                    <div class="user-img">
+                        <h3 class="vehicle-title">Upload Image</h3>
+                        <img src="{% static 'vehicle_images/' %}{{ vehicle.image }}" id="vehicle_photo" title="*Total Image size must lessthan 8mb">
+                        <div class="img_name">{{vehicle.image}}</div>
+                        <input type="file" id="file" name="name" accept="image/*">
+                        <label for="file">Choose Image</label>
                     </div>
-                {% else %}
-                    <div id="qrimg">
-                        {% if qr_code %}
-                            <img src="{{ qr_code }}" alt="QR Code">
-                            <a href="/2fa"><i class="fas fa-arrows-rotate" style="color: #025cf7;"></i></a>
-                        {% else %}
-                            <p>QR code could not be generated.</p>
-                        {% endif %}
-                        
+                    <div class="input-data">
+                        <select name="vehicle_type">
+                            <option disabled>Select vehicle type</option>
+                            <option value="Bike" {% if vehicle.vehicle_type == "Bike" %}selected{% endif %}>
+                                Bike (2 wheeler)
+                            </option>
+                            <option value="Car" {% if vehicle.vehicle_type == "Car" %}selected{% endif %}>
+                                Car (4 wheeler)
+                            </option>
+                        </select>
+                        <span id="error1" class="error"></span>
                     </div>
-                    <div class="recovery">
-                        <p class="note">NOTE: When you added using this QR code then click ADD button</p>
+                </div>
+                <div class="form-row">
+                    <div class="input-data">
+                        <input type="text" name="vehicle_name" id="vehicle_name" maxlength="25" value="{{vehicle.name}}" required>
+                        <div class="underline"></div>
+                        <label for="">Vehicle Name</label>
+                        <span id="error" class="error"></span>
                     </div>
-                    <div class="button">
+                    <div class="input-data">
+                        <input type="text" name="capacity" id="capacity" onKeyPress="return numbersonly(event)" maxlength="2" minlength="1" value="{{vehicle.capacity}}" required>
+                        <div class="underline"></div>
+                        <label for="">Seat Capacity</label>
+                        <span id="error2" class="error"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="input-data">
+                        <input type="text" name="rent" id="rent" maxlength="4" value="{{vehicle.rent}}" onKeyPress="return numbersonly(event)" required>
+                        <div class="underline"></div>
+                        <label for="">Rent Per Day</label>
+                        <span id="error3" class="error"></span>
+                    </div>
+                    <div class="input-data">
+                        <input type="text" name="city" id="city" maxlength="25" value="{{vehicle.location}}" required>
+                        <div class="underline"></div>
+                        <label for="">City Name</label>
+                        <span id="error4" class="error"></span>
+                    </div>
+                </div>
+                <div class="form-row submit-btn">
+                    <div class="input-data">
                         <div class="inner"></div>
-                        <button type="submit">ADD</button>
+                        <input type="submit" value="Update" onclick="validation()">
                     </div>
-                {% endif %}
+                </div>
             </form>
-            {% if messages %}
-                {% for message in messages %}
-                <script>
-                    alert('{{ message }}');
-                </script>
-                {% endfor %}
-            {% endif %}
         </div>
     </div>
-
 
     <!-- Footer Part start -->
     <footer>
@@ -195,5 +206,17 @@
         </div>
     </footer>
     <script src="{% static 'js/header.js' %}"></script>
+    <script src="{% static 'js/validation.js' %}"></script>
+    <script>
+        const vehicle_photo = document.querySelector("#vehicle_photo"),
+            input_file = document.querySelector("#file"),
+            img_name = document.querySelector(".img_name");
+        
+        input_file.addEventListener("change", () => {
+            vehicle_photo.src = URL.createObjectURL(input_file.files[0]);
+            console.log(input_file.files[0].name);
+            img_name.innerHTML = input_file.files[0].name;
+        });
+    </script>
 </body>
 </html>

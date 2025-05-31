@@ -4,28 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders</title>
+    <title>Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/customer_confirm_order.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vehicle_rent_request.css' %}">
 </head>
 <body>
     <nav>
         <div class="nav-bar">
             <i class="fas fa-bars sidebarOpen"></i>
+            {% if login_type == "customer" %}
             <span class="logo navLogo"><a href="/select_vehicle">My Vehicles</a></span>
+            {% else %}
+            <span class="logo navLogo"><a href="/dealer_home">My Vehicles</a></span>
+            {% endif %}
             <div class="menu">
                 <div class="logo-toggle">
+                    {% if login_type == "customer" %}
                     <span class="logo"><a href="/select_vehicle">My Vehicles</a></span>
+                    {% else %}
+                    <span class="logo"><a href="/dealer_home">My Vehicles</a></span>
+                    {% endif %}
                     <i class="fas fa-xmark siderbarClose"></i>
                 </div>
                 
                 <ul class="nav-links">
+                    {% if login_type == "customer" %}
                     <li><a href="/select_vehicle">Vehicle</a></li>
-                    <li><a href="/request_vehicle">Request</a></li>
-                    <li><a href="/customer_orders" class="active">Orders</a></li>
-                    <li><a href="/2fa">2FA</a></li>
+                    <li><a href="/request_vehicle" class="active">Request</a></li>
+                    <li><a href="/customer_orders">Orders</a></li>
+                    {% else %}
+                    <li><a href="/dealer_home">Vehicles</a></li>
+                    <li><a href="/add_vehicle">Add Vehicle</a></li>
+                    <li><a href="/rented_vehicle"  class="active">Rents</a></li>
+                    <li><a href="/dealer_orders">Orders</a></li>
+                    {% endif %}
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -51,8 +65,13 @@
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -72,56 +91,88 @@
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    <div class="order_container">
-        <main class="table">
-            <section class="table_header">
-                <h1>Customer's Orders</h1>
-            </section>
-            {% if orders %}
-            <section class="table_body">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Vehicle Name</th>
-                            <th>Image</th>
-                            <th>Days</th>
-                            <th>Date & Place</th>
-                            <th>Car Dealer</th>
-                            <th>Status</th>
-                            <th>Total Amount</th>
-                            <!-- <th>Delete</th> -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ords in orders %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ ords.order.vehicle_name }}<br>({{ ords.order.vehicle_type }})</td>
-                            <td><img src="{% static 'vehicle_images/' %}{{ ords.order.vehicle_image }}" alt="vehicle image"></td>
-                            <td>{{ ords.order.days }}</td>
-                            <td>{{ ords.order.order_date }}<br>{{ ords.order.location }}</td>
-                            <td>{{ ords.dealer.firstname }} {{ ords.dealer.lastname }}<br>{{ ords.dealer.phoneno }}</td>
-                            <td><p class="status {{ ords.order.status }}">{{ ords.order.status }}</p></td>
-                            <td><strong>₹ {{ ords.order.total_rent }}</strong></td>
-                            <!-- <td><a href="/delete_order/{{ ords.order.order_id }}/" style="--action-clr: #ff0000;" onclick="return confirm('Are you sure you want to delete this history ?')"><i class="fas fa-trash"></i></a></td> -->
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </section>
-            {% else %}
-                <h1 class="no-order">No order placed</h1>
-            {% endif %}
-            {% if messages %}
-                {% for message in messages %}
-                <script>
-                    alert('{{ message }}');
-                </script>
-                {% endfor %}
-            {% endif %}
-        </main>
+    {% if login_type == "customer" %}
+    <h1 class="heading">Vehicle Rent Request</h1>
+    <div class="rent_container">
+        {% if request_vehicles_info %}
+        <div class="filterable_cards">
+            {% for info in request_vehicles_info %}
+            <div class="card">
+                <img src="{% static 'vehicle_images/' %}{{ info.order.vehicle_image }}" alt="{{ info.order.vehicle_type }}">
+                <div class="card_body">
+                    <h3 class="card_title">{{ info.order.vehicle_name }}({{ info.order.vehicle_type }})</h3>
+                    <p class="card_details"><b>Dealer Name: </b>{{ info.dealer.firstname }} {{ info.dealer.lastname }}<br><b>Contact: </b>{{ info.dealer.phoneno }}<br><b>Capacity: </b>{{ info.order.capacity }}</p>
+                    <p class="card_details"><b>Days: </b>{{ info.order.days }}<br><b>Amount: </b>₹ {{ info.order.total_rent }}</p>
+                    <div class="action-buttons">
+                        {% if info.order.status == "accepted" %}
+                        <form action="/complete_rent_request/" method="post" style="width: 100%;">
+                            {% csrf_token %}
+                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
+                            <button type="submit" style="--action-clr: #187010;">Complete</button>
+                        </form>
+                        {% else %}
+                        <form action="/cancel_rent_request/" method="post" style="width: 100%;">
+                            {% csrf_token %}
+                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
+                            <button type="submit" style="--action-clr: #ff0000;">Cancel Request</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <h1 class="not-rented">No vehicle requested yet</h1>
+        {% endif %}
     </div>
+
+    {% else %}
+    <h1 class="heading">Accept/Decline Rent Request</h1>
+    <div class="rent_container">
+        {% if rented_vehicles_info %}
+        <div class="filterable_cards">
+            {% for info in rented_vehicles_info %}
+            <div class="card">
+                <img src="{% static 'vehicle_images/' %}{{ info.order.vehicle_image }}" alt="{{ info.order.vehicle_type }}">
+                <div class="card_body">
+                    <h3 class="card_title">{{ info.order.vehicle_name }}({{ info.order.vehicle_type }})</h3>
+                    <p class="card_details"><b>Customer Name: </b>{{ info.customer.firstname }} {{ info.customer.lastname }}<br><b>Contact: </b>{{ info.customer.phoneno }}<br><b>Capacity: </b>{{ info.order.capacity }}</p>
+                    <p class="card_details"><b>Days: </b>{{ info.order.days }}<br><b>Amount: </b>₹ {{ info.order.total_rent }}</p>
+                    <div class="action-buttons">
+                        {% if info.order.status == "accepted" %}
+                        <form style="width: 100%;">
+                            <button style="--action-clr: #102370;" disabled>Accepted</button>
+                        </form>
+                        {% else %}
+                        <form action="/accept_rent_request/" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
+                            <button type="submit" style="--action-clr: #102370;">Accept</button>
+                        </form>
+                        <form action="/cancel_rent_request/" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
+                            <button type="submit" style="--action-clr: #ff0000;">Cancel</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <h1 class="not-rented">No vehicle rented yet</h1>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% if messages %}
+        {% for message in messages %}
+        <script>
+            alert('{{ message }}');
+        </script>
+        {% endfor %}
+    {% endif %}
 
     <!-- Footer Part start -->
     <footer>

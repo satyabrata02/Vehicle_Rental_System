@@ -51,6 +51,11 @@ h1.heading{
     font-size: 26px;
     display: none;
 }
+#no_vehicle{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
 .no-vehicle{
     color: red;
     text-align: center;
@@ -339,4 +344,10 @@ form .button{
 }
 .signup a:hover, .recovery a:hover{
     text-decoration: underline;
+}
+
+@media(max-width: 450px){
+    #no_vehicle{
+        width: 90%;
+    }
 }

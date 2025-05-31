@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>Add Authentication</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/register_recovery.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home_login.css' %}">
 </head>
 <body>
     <nav>
@@ -30,7 +30,6 @@
                 </div>
                 
                 <ul class="nav-links">
-                    <li><a href="/user_profile" class="active">My Profile</a></li>
                     {% if login_type == "customer" %}
                     <li><a href="/select_vehicle">Vehicle</a></li>
                     <li><a href="/request_vehicle">Request</a></li>
@@ -41,7 +40,7 @@
                     <li><a href="/rented_vehicle">Rents</a></li>
                     <li><a href="/dealer_orders">Orders</a></li>
                     {% endif %}
-                    <li><a href="/2fa">2FA</a></li>
+                    <li><a href="/2fa" class="active">2FA</a></li>
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -49,7 +48,7 @@
                             <i class="fas fa-moon moon"></i>
                         </div>
                     </li>
-                    <li><img src="{% static 'profile_picture/' %}{{ user.images }}" class="user-pic" alt="Profile Picture" onclick="toggleMenu()"></li>
+                    <li><img src="{% static 'profile_picture/' %}{{user.images}}" class="user-pic" alt="Profile Picture" onclick="toggleMenu()"></li>
                 </ul>
             </div>
             <div class="darkLight">
@@ -57,18 +56,23 @@
                     <i class="fas fa-sun sun"></i>
                     <i class="fas fa-moon moon"></i>
                 </div>
-                <img src="{% static 'profile_picture/' %}{{ user.images }}" alt="Profile Picture" onclick="toggleMenu()">
+                <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture" onclick="toggleMenu()">
             </div>
             <div class="sub-menu-wrap" id="subMenu">
                 <div class="sub-menu">
                     <div class="user-info">
-                        <img src="{% static 'profile_picture/' %}{{ user.images }}" alt="Profile Picture">
-                        <h3>Hii, {{ user.firstname }}</h3>
+                        <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture">
+                        <h3>Hii, {{user.firstname}}</h3>
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -88,80 +92,42 @@
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    <div class="about">
+    <div class="about">            
         <div class="container">
-            <div class="title">My Details</div>
-            <form method="post" enctype="multipart/form-data">
+            <header>Authenticator</header>
+            <form method="post">
                 {% csrf_token %}
-                <div class="user-img">
-                    <img src="{% static 'profile_picture/' %}{{ user.images }}" id="photo">
-                    <input type="file" id="file" name="name" accept="image/*">
-                    <label for="file" id="uploadbtn" title="*Total Image size must lessthan 8mb"><i class="fas fa-image"></i></label>
-                </div>
-                <p class="user-type"><strong>user type: </strong>{{login_type}}</p>
-                <div class="user-details">
-                    <div class="input-box">
-                        <input type="text" name="firstname" id="firstname" maxlength="25" autocomplete="off" value="{{ user.firstname }}" required>
-                        <label>First Name</label>
-                        <span id="error" class="error"></span>
+                {% if has_auth %}
+                    <div class="contents details">
+                        <table>
+                            <tr>
+                                <th>TITLE</th>
+                                <th>DELETE</th>
+                            </tr>
+                            <tr>
+                                <td>Authenticator App</td>
+                                <td><a href="/delete-auth"><i class="fas fa-trash" style="color: #ff0000;"></i></a></td>
+                            </tr>
+                        </table>
                     </div>
-                    <div class="input-box">
-                        <input type="text" name="lastname" id="lastname" maxlength="25" autocomplete="off" value="{{ user.lastname }}" required>
-                        <label>Last Name</label>
-                        <span id="error2" class="error"></span>
+                {% else %}
+                    <div id="qrimg">
+                        {% if qr_code %}
+                            <img src="{{ qr_code }}" alt="QR Code">
+                            <a href="/2fa"><i class="fas fa-arrows-rotate" style="color: #025cf7;"></i></a>
+                        {% else %}
+                            <p>QR code could not be generated.</p>
+                        {% endif %}
+                        
                     </div>
-                    <div class="input-box">
-                        <input type="text" name="phoneno" minlength="10" maxlength="10" onKeyPress="return numbersonly(event)" autocomplete="off" id="phoneno" value="{{ user.phoneno }}" required>
-                        <label>Phone no</label>
-                        <span id="error3" class="error"></span>
+                    <div class="recovery">
+                        <p class="note">NOTE: When you added using this QR code then click ADD button</p>
                     </div>
-                    <div class="input-box">
-                        <input class="pswrd" type="password" id="password" name="password" maxlength="12" value="{{ user.password }}" readonly required>
-                        <label>Password</label>
-                        <span class="show">SHOW</span> 
-                        <span id="error5" class="error"></span>
+                    <div class="button">
+                        <div class="inner"></div>
+                        <button type="submit">ADD</button>
                     </div>
-                    <div class="input-box">
-                        <input type="email" name="emailid" id="emailid" maxlength="35" autocomplete="off" value="{{ user.emailid }}" required>
-                        <label>Email ID</label>
-                        <span id="error4" class="error"></span>
-                    </div>
-                    <div class="input-box">
-                        <input type="text" name="gender" id="gender" value="{{ user.gender }}" disabled>
-                        <label>Gender</label>
-                    </div>
-                    <div class="input-box">
-                        <select name="secure_option">
-                            <option disabled>Select your option</option>
-                            <option value="what is your nick name ?" {% if user.secure_question == "what is your nick name ?" %}selected{% endif %}>
-                                What is your nick name ?
-                            </option>
-                            <option value="what is your pet name ?" {% if user.secure_question == "what is your pet name ?" %}selected{% endif %}>
-                                What is your pet name ?
-                            </option>
-                            <option value="what is your first school name ?" {% if user.secure_question == "what is your first school name ?" %}selected{% endif %}>
-                                What is your first school name ?
-                            </option>
-                            <option value="who was your childhood hero ?" {% if user.secure_question == "who was your childhood hero ?" %}selected{% endif %}>
-                                Who was your childhood hero ?
-                            </option>
-                            <option value="what is your favorite subject ?" {% if user.secure_question == "what is your favorite subject ?" %}selected{% endif %}>
-                                What is your favorite subject ?
-                            </option>
-                        </select>
-                        <span id="error6" class="error"></span>
-                    </div>
-                    <div class="input-box">
-                        <input class="pswrd2" type="password" name="answer" maxlength="25" value="{{ user.answer }}" readonly required>
-                        <label>Answer</label>
-                        <span class="show2">SHOW</span>
-                        <span id="error7" class="error"></span>
-                    </div>
-                </div>
-                <div class="submit-btn">
-                    <div class="inner"></div>
-                    <input type="submit" value="SAVE" onclick="validation()">
-                </div>
+                {% endif %}
             </form>
             {% if messages %}
                 {% for message in messages %}
@@ -172,6 +138,7 @@
             {% endif %}
         </div>
     </div>
+
 
     <!-- Footer Part start -->
     <footer>
@@ -233,7 +200,5 @@
         </div>
     </footer>
     <script src="{% static 'js/header.js' %}"></script>
-    <script src="{% static 'js/user_profile.js' %}"></script>
-    <script src="{% static 'js/validation.js' %}"></script>
 </body>
 </html>

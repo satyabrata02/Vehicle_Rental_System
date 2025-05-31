@@ -1,46 +1,30 @@
 <!DOCTYPE html>
-{% load static %}
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request</title>
+    <title>Find Vehicle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/vehicle_rent_request.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home_login.css' %}">
 </head>
 <body>
     <nav>
         <div class="nav-bar">
             <i class="fas fa-bars sidebarOpen"></i>
-            {% if login_type == "customer" %}
             <span class="logo navLogo"><a href="/select_vehicle">My Vehicles</a></span>
-            {% else %}
-            <span class="logo navLogo"><a href="/dealer_home">My Vehicles</a></span>
-            {% endif %}
             <div class="menu">
                 <div class="logo-toggle">
-                    {% if login_type == "customer" %}
                     <span class="logo"><a href="/select_vehicle">My Vehicles</a></span>
-                    {% else %}
-                    <span class="logo"><a href="/dealer_home">My Vehicles</a></span>
-                    {% endif %}
                     <i class="fas fa-xmark siderbarClose"></i>
                 </div>
                 
                 <ul class="nav-links">
-                    {% if login_type == "customer" %}
-                    <li><a href="/select_vehicle">Vehicle</a></li>
-                    <li><a href="/request_vehicle" class="active">Request</a></li>
+                    <li><a href="/select_vehicle" class="active">Vehicle</a></li>
+                    <li><a href="/request_vehicle">Request</a></li>
                     <li><a href="/customer_orders">Orders</a></li>
-                    {% else %}
-                    <li><a href="/dealer_home">Vehicles</a></li>
-                    <li><a href="/add_vehicle">Add Vehicle</a></li>
-                    <li><a href="/rented_vehicle"  class="active">Rents</a></li>
-                    <li><a href="/dealer_orders">Orders</a></li>
-                    {% endif %}
-                    <li><a href="/2fa">2FA</a></li>
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -66,8 +50,13 @@
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -87,80 +76,44 @@
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    {% if login_type == "customer" %}
-    <h1 class="heading">Vehicle Rent Request</h1>
-    <div class="rent_container">
-        {% if request_vehicles_info %}
+    <h1 class="heading">You can select/search any vehicle for rent</h1>
+    {% if vehicles %}
+    <div class="search_location">
+        <div>
+            <input type="text" id="mysearch" placeholder="Type city name" onkeyup="searchbox()">
+            <i class="fa fa-search"></i>
+        </div>
+    </div>
+    
+    <div class="home_container">
+        <div class="fiter_buttons">
+            <button class="active" data-name="all">Show all</button>
+            <button data-name="Bike">Bikes</button>
+            <button data-name="Car">Cars</button>
+        </div>
         <div class="filterable_cards">
-            {% for info in request_vehicles_info %}
-            <div class="card">
-                <img src="{% static 'vehicle_images/' %}{{ info.order.vehicle_image }}" alt="{{ info.order.vehicle_type }}">
+            {% for vehicle in vehicles %}
+            <div class="card" data-name="{{ vehicle.vehicle.vehicle_type }}">
+                <img src="{% static 'vehicle_images/' %}{{ vehicle.vehicle.image }}" alt="{{ vehicle.vehicle.vehicle_type }}">
                 <div class="card_body">
-                    <h3 class="card_title">{{ info.order.vehicle_name }}({{ info.order.vehicle_type }})</h3>
-                    <p class="card_details"><b>Dealer Name: </b>{{ info.dealer.firstname }} {{ info.dealer.lastname }}<br><b>Contact: </b>{{ info.dealer.phoneno }}<br><b>Capacity: </b>{{ info.order.capacity }}</p>
-                    <p class="card_details"><b>Days: </b>{{ info.order.days }}<br><b>Amount: </b>₹ {{ info.order.total_rent }}</p>
-                    <div class="action-buttons">
-                        {% if info.order.status == "accepted" %}
-                        <form action="/complete_rent_request/" method="post" style="width: 100%;">
+                    <h3 class="card_title">{{ vehicle.vehicle.vehicle_type }} Name: {{ vehicle.vehicle.name }}</h3>
+                    <p class="card_details"><b>{{ vehicle.vehicle.vehicle_type }} Dealer: </b>{{ vehicle.dealer.firstname }} {{ vehicle.dealer.lastname }}<br><b>Rent: </b>₹ {{ vehicle.vehicle.rent }} per day</p>
+                    <p class="card_details location"><b>Location: </b>{{ vehicle.vehicle.location }}</p>
+                    <div class="rent_btn">
+                        <form action = "/vehicle_rent/" method="post">
                             {% csrf_token %}
-                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
-                            <button type="submit" style="--action-clr: #187010;">Complete</button>
+                            <input type="hidden" name="id" value="{{vehicle.vehicle.vehicle_id}}">
+                            <button type="submit">Rent Now</button>
                         </form>
-                        {% else %}
-                        <form action="/cancel_rent_request/" method="post" style="width: 100%;">
-                            {% csrf_token %}
-                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
-                            <button type="submit" style="--action-clr: #ff0000;">Cancel Request</button>
-                        </form>
-                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-        {% else %}
-            <h1 class="not-rented">No vehicle requested yet</h1>
-        {% endif %}
     </div>
-
     {% else %}
-    <h1 class="heading">Accept/Decline Rent Request</h1>
-    <div class="rent_container">
-        {% if rented_vehicles_info %}
-        <div class="filterable_cards">
-            {% for info in rented_vehicles_info %}
-            <div class="card">
-                <img src="{% static 'vehicle_images/' %}{{ info.order.vehicle_image }}" alt="{{ info.order.vehicle_type }}">
-                <div class="card_body">
-                    <h3 class="card_title">{{ info.order.vehicle_name }}({{ info.order.vehicle_type }})</h3>
-                    <p class="card_details"><b>Customer Name: </b>{{ info.customer.firstname }} {{ info.customer.lastname }}<br><b>Contact: </b>{{ info.customer.phoneno }}<br><b>Capacity: </b>{{ info.order.capacity }}</p>
-                    <p class="card_details"><b>Days: </b>{{ info.order.days }}<br><b>Amount: </b>₹ {{ info.order.total_rent }}</p>
-                    <div class="action-buttons">
-                        {% if info.order.status == "accepted" %}
-                        <form style="width: 100%;">
-                            <button style="--action-clr: #102370;" disabled>Accepted</button>
-                        </form>
-                        {% else %}
-                        <form action="/accept_rent_request/" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
-                            <button type="submit" style="--action-clr: #102370;">Accept</button>
-                        </form>
-                        <form action="/cancel_rent_request/" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="v_id" value="{{ info.order.vehicle_id }}">
-                            <button type="submit" style="--action-clr: #ff0000;">Cancel</button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-            <h1 class="not-rented">No vehicle rented yet</h1>
-        {% endif %}
-    </div>
+        <img src="../static/vehicle_images/logo.png" alt="No Vehicle" id="no_vehicle">
+        <h1 class="no-vehicle">No Vehicle available</h1>
     {% endif %}
     {% if messages %}
         {% for message in messages %}
@@ -169,6 +122,7 @@
         </script>
         {% endfor %}
     {% endif %}
+    <h2 id="notfound">Vehicle not available</h2>
 
     <!-- Footer Part start -->
     <footer>
@@ -230,5 +184,6 @@
         </div>
     </footer>
     <script src="{% static 'js/header.js' %}"></script>
+    <script src="{% static 'js/filter_vehicle.js' %}"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders</title>
+    <title>Confirm Vehicle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
@@ -14,19 +14,17 @@
     <nav>
         <div class="nav-bar">
             <i class="fas fa-bars sidebarOpen"></i>
-            <span class="logo navLogo"><a href="/dealer_home">My Vehicles</a></span>
+            <span class="logo navLogo"><a href="/select_vehicle">My Vehicles</a></span>
             <div class="menu">
                 <div class="logo-toggle">
-                    <span class="logo"><a href="/dealer_home">My Vehicles</a></span>
+                    <span class="logo"><a href="/select_vehicle">My Vehicles</a></span>
                     <i class="fas fa-xmark siderbarClose"></i>
                 </div>
                 
                 <ul class="nav-links">
-                    <li><a href="/dealer_home">Vehicles</a></li>
-                    <li><a href="/add_vehicle">Add Vehicle</a></li>
-                    <li><a href="/rented_vehicle">Rents</a></li>
-                    <li><a href="/dealer_orders"  class="active">Orders</a></li>
-                    <li><a href="/2fa">2FA</a></li>
+                    <li><a href="/select_vehicle">Vehicle</a></li>
+                    <li><a href="/request_vehicle">Request</a></li>
+                    <li><a href="/customer_orders">Orders</a></li>
                     <li><a href="/logout">Signout</a></li>
                     <li>
                         <div class="dark-light">
@@ -48,12 +46,17 @@
                 <div class="sub-menu">
                     <div class="user-info">
                         <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture">
-                        <h3>Hii, satyabrata</h3>
+                        <h3>Hii, {{user.firstname}}</h3>
                     </div>
                     <hr>
                     <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-pen"></i>
                         <p>Edit Profile</p>
+                        <span> > </span>
+                    </a>
+                    <a href="/2fa" class="sub-menu-link">
+                        <i class="fas fa-user-lock"></i>
+                        <p>2FA</p>
                         <span> > </span>
                     </a>
                     <a href="#" class="sub-menu-link">
@@ -73,49 +76,31 @@
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    <div class="order_container">
-        <main class="table">
-            <section class="table_header table_header2">
-                <h1>Dealer's Orders</h1>
-                <h1>Total Earnings: ₹ {{user.earnings}}</h1>
-            </section>
-            {% if orders %}
-            <section class="table_body">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Vehicle Info</th>
-                            <th>Image</th>
-                            <th>Capacity</th>
-                            <th>Days</th>
-                            <th>Date & Place</th>
-                            <th>Customer Info</th>
-                            <th>Status</th>
-                            <th>Total Rent</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ords in orders %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ ords.order.vehicle_name }}<br>({{ ords.order.vehicle_type }})</td>
-                            <td><img src="{% static 'vehicle_images/' %}{{ ords.order.vehicle_image }}" alt="vehicle image"></td>
-                            <td>{{ ords.order.capacity }}</td>
-                            <td>{{ ords.order.days }}</td>
-                            <td>{{ ords.order.order_date }}<br>{{ ords.order.location }}</td>
-                            <td>{{ ords.customer.firstname }} {{ ords.customer.lastname }}<br>{{ ords.customer.phoneno }}</td>
-                            <td><p class="status {{ ords.order.status }}">{{ ords.order.status }}</p></td>
-                            <td><strong>₹ {{ ords.order.total_rent }}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </section>
-            {% else %}
-                <h1 class="no-order">No order placed</h1>
-            {% endif %}
-        </main>
+    <h1 class="heading">Confirm Your vehicle for rent</h1>
+    
+    <div class="home_container">
+        <div class="filterable_cards">
+            <div class="card single-card">
+                <img src="{% static 'vehicle_images/' %}{{vehicle.image}}" alt="{{vehicle.vehicle_type}}">
+                <div class="card_body">
+                    <h3 class="card_title">{{vehicle.vehicle_type}} Name: {{vehicle.name}}</h3>
+                    <p class="card_details"><b>{{vehicle.vehicle_type}} Dealer: </b>{{dealer.firstname}} {{dealer.lastname}}<br><b>Rent: </b>₹ {{vehicle.rent}} per day</p>
+                    <p class="card_details"><b>Location: </b>{{vehicle.location}}</p>
+                    <form method="post" action="/order_details/">
+                        {% csrf_token %}
+                        <input type="hidden" value="{{vehicle.vehicle_id}}" name="id">
+                        <div class="input-field">
+                            <input type="text" name="days" maxlength="2" onKeyPress="return numbersonly(event)" required>
+                            <label>How many days ?</label>
+                        </div>
+                        <div class="button">
+                            <div class="inner"></div>
+                            <button type="submit">CONFIRM</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Footer Part start -->
@@ -178,5 +163,6 @@
         </div>
     </footer>
     <script src="{% static 'js/header.js' %}"></script>
+    <script src="{% static 'js/validation.js' %}"></script>
 </body>
 </html>

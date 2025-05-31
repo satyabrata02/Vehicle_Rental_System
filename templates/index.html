@@ -1,39 +1,38 @@
 <!DOCTYPE html>
-{% load static %}
+<!-- {% load static %} -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Vehicle</title>
+    <title>Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" href="{% static 'vehicle_images/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/header_footer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/customer_confirm_order.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home_login.css' %}">
 </head>
 <body>
     <nav>
         <div class="nav-bar">
             <i class="fas fa-bars sidebarOpen"></i>
-            <span class="logo navLogo"><a href="/select_vehicle">My Vehicles</a></span>
+            <span class="logo navLogo"><a href="/">My Vehicles</a></span>
             <div class="menu">
                 <div class="logo-toggle">
-                    <span class="logo"><a href="/select_vehicle">My Vehicles</a></span>
+                    <span class="logo"><a href="/">My Vehicles</a></span>
                     <i class="fas fa-xmark siderbarClose"></i>
                 </div>
-                
+    
                 <ul class="nav-links">
-                    <li><a href="/select_vehicle">Vehicle</a></li>
-                    <li><a href="/request_vehicle">Request</a></li>
-                    <li><a href="/customer_orders">Orders</a></li>
-                    <li><a href="/2fa">2FA</a></li>
-                    <li><a href="/logout">Signout</a></li>
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="/customer_login">Customer</a></li>
+                    <li><a href="/dealer_login">Dealer</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/contactus">Contact</a></li>
                     <li>
                         <div class="dark-light">
                             <i class="fas fa-sun sun"></i>
                             <i class="fas fa-moon moon"></i>
                         </div>
                     </li>
-                    <li><img src="{% static 'profile_picture/' %}{{user.images}}" class="user-pic" alt="Profile Picture" onclick="toggleMenu()"></li>
                 </ul>
             </div>
             <div class="darkLight">
@@ -41,63 +40,55 @@
                     <i class="fas fa-sun sun"></i>
                     <i class="fas fa-moon moon"></i>
                 </div>
-                <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture" onclick="toggleMenu()">
-            </div>
-            <div class="sub-menu-wrap" id="subMenu">
-                <div class="sub-menu">
-                    <div class="user-info">
-                        <img src="{% static 'profile_picture/' %}{{user.images}}" alt="Profile Picture">
-                        <h3>Hii, {{user.firstname}}</h3>
-                    </div>
-                    <hr>
-                    <a href="/user_profile" class="sub-menu-link">
-                        <i class="fas fa-user"></i>
-                        <p>Edit Profile</p>
-                        <span> > </span>
-                    </a>
-                    <a href="#" class="sub-menu-link">
-                        <i class="fas fa-gear"></i>
-                        <p>Settings & Privacy</p>
-                        <span> > </span>
-                    </a>
-                    <a href="#" class="sub-menu-link">
-                        <i class="fas fa-circle-question"></i>
-                        <p>Help & Support</p>
-                        <span> > </span>
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
 <!--  Header End -->
 
     <!-- Main Content Start -->
-    <h1 class="heading">Confirm Your vehicle for rent</h1>
-    
-    <div class="home_container">
-        <div class="filterable_cards">
-            <div class="card single-card">
-                <img src="{% static 'vehicle_images/' %}{{vehicle.image}}" alt="{{vehicle.vehicle_type}}">
-                <div class="card_body">
-                    <h3 class="card_title">{{vehicle.vehicle_type}} Name: {{vehicle.name}}</h3>
-                    <p class="card_details"><b>{{vehicle.vehicle_type}} Dealer: </b>{{dealer.firstname}} {{dealer.lastname}}<br><b>Rent: </b>₹ {{vehicle.rent}} per day</p>
-                    <p class="card_details"><b>Location: </b>{{vehicle.location}}</p>
-                    <form method="post" action="/order_details/">
-                        {% csrf_token %}
-                        <input type="hidden" value="{{vehicle.vehicle_id}}" name="id">
-                        <div class="input-field">
-                            <input type="text" name="days" maxlength="2" onKeyPress="return numbersonly(event)" required>
-                            <label>How many days ?</label>
-                        </div>
-                        <div class="button">
-                            <div class="inner"></div>
-                            <button type="submit">CONFIRM</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <h1 class="heading">You can select/search any vehicle for rent</h1>
+    {% if vehicles %}
+    <div class="search_location">
+        <div>
+            <input type="text" id="mysearch" placeholder="Type city name" onkeyup="searchbox()">
+            <i class="fa fa-search"></i>
         </div>
     </div>
+    
+    <div class="home_container">
+        <div class="fiter_buttons">
+            <button class="active" data-name="all">Show all</button>
+            <button data-name="Bike">Bikes</button>
+            <button data-name="Car">Cars</button>
+        </div>
+        <div class="filterable_cards">
+            {% for vehicle in vehicles %}
+            <div class="card" data-name="{{ vehicle.vehicle.vehicle_type }}">
+                <img src="{% static 'vehicle_images/' %}{{ vehicle.vehicle.image }}" alt="{{ vehicle.vehicle.vehicle_type }}">
+                <div class="card_body">
+                    <h3 class="card_title">{{ vehicle.vehicle.vehicle_type }} Name: {{ vehicle.vehicle.name }}</h3>
+                    <p class="card_details"><b>{{ vehicle.vehicle.vehicle_type }} Dealer: </b>{{ vehicle.dealer.firstname }} {{ vehicle.dealer.lastname }}<br><b>Rent: </b>₹{{ vehicle.vehicle.rent }} per day</p>
+                    <p class="card_details location"><b>Location: </b>{{ vehicle.vehicle.location }}</p>
+                    <div class="rent_btn">
+                        <a href="/customer_login">Login to Rent</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+        <img src="{% static 'vehicle_images/logo.png' %}" alt="No Vehicle" id="no_vehicle">
+        <h1 class="no-vehicle">No Vehicle available</h1>
+    {% endif %}
+    {% if messages %}
+        {% for message in messages %}
+        <script>
+            alert('{{ message }}');
+        </script>
+        {% endfor %}
+    {% endif %}
+    <h2 id="notfound">Vehicle not available</h2>
 
     <!-- Footer Part start -->
     <footer>
@@ -158,7 +149,7 @@
             </div>
         </div>
     </footer>
-    <script src="{% static 'js/header.js' %}"></script>
-    <script src="{% static 'js/validation.js' %}"></script>
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/filter_vehicle.js"></script>
 </body>
 </html>
